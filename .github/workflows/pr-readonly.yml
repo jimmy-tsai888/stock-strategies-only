@@ -1,0 +1,43 @@
+name: TWStock PR Read-only
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pr-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout without stored credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install pinned uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.18"
+          python-version: "3.12"
+          enable-cache: false
+      - name: Check PR workflow safety
+        run: python3 -B .github/scripts/pr_ci_policy.py check-workflow .github/workflows/pr-readonly.yml
+      - name: Scan checked-out text for credential signatures
+        run: python3 -B .github/scripts/pr_ci_policy.py scan-secrets .
+      - name: Check portable protected-manifest fixture
+        run: python3 -B .github/scripts/pr_ci_policy.py check-manifest .github/fixtures/pr-protected-manifest.json
+      - name: Install checksum-verified Gitleaks
+        run: python3 -B .github/scripts/install_gitleaks.py "$RUNNER_TEMP/twstock-tools/gitleaks"
+      - name: Scan checkout and prove synthetic credential is blocked
+        run: python3 -B .github/scripts/pr_ci_gate.py gitleaks "$RUNNER_TEMP/twstock-tools/gitleaks" . "$RUNNER_TEMP"
+      - name: Check lockfile without rewriting it
+        run: uv lock --check
+      - name: Install locked project and test dependencies
+        run: uv sync --locked --group dev --no-install-project
+      - name: Stage only reviewed portable synthetic suites
+        run: .venv/bin/python -B .github/scripts/pr_ci_gate.py stage "$RUNNER_TEMP/twstock-pr-guard" "$RUNNER_TEMP/twstock-pr-guard-manifest.json"
+      - name: Run Regression Guard on portable synthetic suites
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B .agents/skills/twstock-regression-guard/scripts/run_regression_guard.py --workspace "$RUNNER_TEMP/twstock-pr-guard" --before-manifest "$RUNNER_TEMP/twstock-pr-guard-manifest.json" --output "$RUNNER_TEMP/twstock-pr-guard-report.json" --required-suite tests/skills/test_regression_guard_skill.py --required-suite tests/ci/test_pr_ci_policy.py
+      - name: Prove failing synthetic pytest blocks Regression Guard
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B .github/scripts/pr_ci_gate.py negative-pytest "$RUNNER_TEMP"
