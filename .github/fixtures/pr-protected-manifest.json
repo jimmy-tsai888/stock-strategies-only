@@ -1,0 +1,12 @@
+{
+  "protected_files": [
+    {
+      "path": ".github/fixtures/pr-protected-sample.txt",
+      "sha256": "8dd525e72f37131197169a54a12785917102f803abebb9714bd0fd79b272816c"
+    }
+  ],
+  "required_suites": [
+    "tests/skills/test_regression_guard_skill.py",
+    "tests/ci/test_pr_ci_policy.py"
+  ]
+}

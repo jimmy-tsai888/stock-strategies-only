@@ -5,16 +5,63 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Virtual environments
 .venv/
 
 # Environment variables and credentials
 .env
+.env.*
+!.env.example
+!web/.env.local.example
 *.json.key
 speech-to-text-*.json
 *-credentials.json
 *-service-account.json
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# Local generated application assets. Reviewed fixtures can be added explicitly.
+*.joblib
+*.pkl
+*.onnx
+*.pt
+*.pth
+*.parquet
+*.feather
+*.arrow
+*.sqlite3
+
+# Frontend install, build, and browser-test output
+node_modules/
+.next/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Existing local run roots in TWStockSystem-gate5/outputs. Their contracts are
+# evidence-bound instances; reusable specifications belong in data_specs/ after review.
+/outputs/**/pytest*/
+/outputs/**/test-output/
+/outputs/**/raw/
+/outputs/P8A0_HistoryExpansion/
+/outputs/P8A0R_ProviderMicroProbe/
+/outputs/Skills_Batch1/
+/outputs/p9-f0c4-build-20260921/
+/outputs/p9-f0c5-preflight-20260921/
+/outputs/p9-f0d-preflight-20260921/
+/outputs/p9-f0d-v2-preflight-20260921-164018-17fd06fe7e184e2cb99b8ba48d820772/
+/outputs/p9-f0d1-volume-semantics-20260921/
+/outputs/p9-f0d2-historical-runner-20260921/
 
 # macOS
 .DS_Store
